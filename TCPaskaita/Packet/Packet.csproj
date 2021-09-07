@@ -66,8 +66,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BinaryConstField.cs" />
+    <Compile Include="Bytes.cs" />
+    <Compile Include="Constants.cs" />
+    <Compile Include="Field.cs" />
+    <Compile Include="IntegerField.cs" />
+    <Compile Include="ClientPacket.cs" />
     <Compile Include="Packet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ServerPacket.cs" />
+    <Compile Include="VariableLengthField.cs" />
+    <Compile Include="Worker.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">

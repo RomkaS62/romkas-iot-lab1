@@ -2,407 +2,127 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Collections;
 
 namespace Packets
 {
-    
-    public class Packet
+    public abstract class Packet
     {
-        protected const byte PCK_START = (byte)0x21;
-        protected ushort PCK_SIZE;
-        protected ushort PCK_CNT;
-        protected byte PCK_ID;
-        protected ushort PCK_CRC;
-        protected const byte PCK_END = (byte)0x2E;
+        protected Field[] Fields;
 
-        protected byte PCK_SID;
-        protected ushort PCK_SCNT;
-
-        private byte[] packet;
-        private int idx;
-
-        public Packet()
+        /// <summary>
+        ///     Reads a packet from buffer.
+        /// </summary>
+        /// <param name="buf">Buffer to read from.</param>
+        /// <param name="at">Start index.</param>
+        /// <returns>Representation of read state.</returns>
+        public ReadState Read(byte[] buf, int at)
         {
-            this.PCK_SIZE = (ushort)0x0000;
-            this.PCK_CNT = (ushort)0x0000;
-            this.PCK_ID = (byte)0x00;
-            this.PCK_CRC = (ushort)0x0000;
-            this.PCK_SID = (byte)0x00;
-            this.PCK_SCNT = (ushort)0x0000;
-            this.idx = 0;
+            int copy = at;
+            return Read(buf, ref copy);
         }
 
-        #region PACKETU GENERATORIAI
-
-        #region TCP CLIENT packetai
-        
-        public void init_CLIENT_P1(ushort cnt)
+        /// <summary>
+        ///     Reads a packet from buffer.
+        /// </summary>
+        /// <param name="buf">Buffer to read from.</param>
+        /// <param name="at">Start index. Incremented by bytes read.</param>
+        /// <returns>Representation of read state.</returns>
+        public ReadState Read(byte[] buf, ref int at)
         {
-            const ushort pck_size = (ushort)0x0006;
-            const byte pck_id = (byte)0x01;
-
-            initPacket(pck_size + 4);
-            addByte((byte)PCK_START);
-            addByte((byte)PCK_START);
-            addWord((ushort)pck_size);
-            addWord((ushort)cnt);
-            addByte((byte)pck_id);
-            addWord((ushort)0x0000);//crc
-            addByte((byte)PCK_END);
-            updateCRC();
-        }
-
-        public void init_CLIENT_P2(ushort cnt, byte data)
-        {
-            const ushort pck_size = (ushort)0x0007; //6 + 1
-            const byte pck_id = (byte)0x03;
-
-            initPacket(pck_size + 4);
-            addByte((byte)PCK_START);
-            addByte((byte)PCK_START);
-            addWord((ushort)pck_size);
-            addWord((ushort)cnt);
-            addByte((byte)pck_id);
-            addByte((byte)data);
-            addWord((ushort)0x0000);//crc
-            addByte((byte)PCK_END);
-            updateCRC();
-        }
-
-        public void init_CLIENT_P3(ushort cnt, byte[] more_data)
-        {
-            ushort pck_size = (ushort)(6 + more_data.Length);
-            const byte pck_id = (byte)0x05;
-
-            initPacket(pck_size + 4);
-            addByte((byte)PCK_START);
-            addByte((byte)PCK_START);
-            addWord((ushort)pck_size);
-            addWord((ushort)cnt);
-            addByte((byte)pck_id);
-            for (int i = 0; i < more_data.Length; i++)
+            int start = at;
+            for (int i = 0; i < Fields.Length; i++)
             {
-                addByte((byte)more_data[i]);
-            }
-            addWord((ushort)0x0000);//crc
-            addByte((byte)PCK_END);
-            updateCRC();
-        }
-
-
-        #endregion
-
-        #region TCP SERVER packetai
-
-        public void init_SERVER_P1(ushort cnt, byte pck_sid, ushort pck_scnt)
-        {
-            const ushort pck_size = (ushort)0x0009;
-            const byte pck_id = (byte)0x02;
-
-            initPacket(pck_size + 4);
-            addByte((byte)PCK_START);
-            addByte((byte)PCK_START);
-            addWord((ushort)pck_size);
-            addWord((ushort)cnt);
-            addByte((byte)pck_id);
-            addByte((byte)pck_sid);
-            addWord((ushort)pck_scnt);
-            addWord((ushort)0x0000);//crc
-            addByte((byte)PCK_END);
-            updateCRC();
-        }
-
-        public void init_SERVER_P2(ushort cnt, byte pck_sid, ushort pck_scnt, byte data)
-        {
-            const ushort pck_size = (ushort)0x000A; //9 + 1
-            const byte pck_id = (byte)0x04;
-
-            initPacket(pck_size + 4);
-            addByte((byte)PCK_START);
-            addByte((byte)PCK_START);
-            addWord((ushort)pck_size);
-            addWord((ushort)cnt);
-            addByte((byte)pck_id);
-            addByte((byte)pck_sid);
-            addWord((ushort)pck_scnt);
-            addByte((byte)data);
-            addWord((ushort)0x0000);//crc
-            addByte((byte)PCK_END);
-            updateCRC();
-        }
-
-        public void init_SERVER_P3(ushort cnt, byte pck_sid, ushort pck_scnt, byte[] more_data)
-        {
-            ushort pck_size = (ushort)(9 + more_data.Length);
-            const byte pck_id = (byte)0x06;
-
-            initPacket(pck_size + 4);
-            addByte((byte)PCK_START);
-            addByte((byte)PCK_START);
-            addWord((ushort)pck_size);
-            addWord((ushort)cnt);
-            addByte((byte)pck_id);
-            addByte((byte)pck_sid);
-            addWord((ushort)pck_scnt);
-            for (int i = 0; i < more_data.Length; i++)
-            {
-                addByte((byte)more_data[i]);
-            }
-            addWord((ushort)0x0000);//crc
-            addByte((byte)PCK_END);
-            updateCRC();
-        }
-
-       
-        #endregion
-
-        #endregion
-
-        #region PACKET FIELD ACCESSORS
-
-        #region PCK_SIZE
-
-        public void setPCK_SIZE(ushort pck_size)
-        {
-            addWordAt(pck_size, 2);
-            updateCRC();
-        }
-
-        public ushort getPCK_SIZE()
-        {
-            ushort data = bytes2word(this.packet[2], this.packet[3]);
-            return data;
-        }
-
-        public string getPCK_SIZE_HexString()
-        {
-            ushort data = bytes2word(this.packet[2], this.packet[3]);
-            return word2hexstr(data);
-        }
-
-        #endregion
-
-        #region PCK_CNT
-
-        public void setPCK_CNT(ushort pck_cnt)
-        {
-            addWordAt(pck_cnt, 4);
-            updateCRC();
-        }
-
-        public ushort getPCK_CNT()
-        {
-            ushort data = bytes2word(this.packet[4], this.packet[5]);
-            return data;
-        }
-
-        public string getPCK_CNT_HexString()
-        {
-            ushort data = bytes2word(this.packet[4], this.packet[5]);
-            return word2hexstr(data);
-        }
-
-        #endregion
-
-        #region PCK_ID
-
-        public byte getPCK_ID()
-        {
-            byte data = this.packet[6];
-            return data;
-        }
-
-        public string getPCK_ID_HexString()
-        {
-            byte data = this.packet[6];
-            return byte2hexstr(data);
-
-        }
-
-        #endregion
-
-        #region PCK_CRC
-
-        public ushort getPCK_CRC()
-        {
-            int crc_index = this.packet.Length - 3;
-            ushort data = bytes2word(this.packet[crc_index], this.packet[crc_index+1]);
-            return data;
-        }
-
-        public string getPCK_CRC_HexString()
-        {
-            int crc_index = this.packet.Length - 3;
-            ushort data = bytes2word(this.packet[crc_index], this.packet[crc_index + 1]);
-            return word2hexstr(data);
-        }
-
-        #endregion
-
-        /*unique to SERVER packets*/
-
-        #region PCK_SID
-
-        public void setPCK_SID(byte pck_sid)
-        {
-            addByteAt(pck_sid, 7);
-            updateCRC();
-        }
-        
-        public byte getPCK_SID()
-        {
-            byte data = this.packet[7];
-            return data;
-        }
-
-        public string getPCK_SID_HexString()
-        {
-            byte data = this.packet[7];
-            return byte2hexstr(data);
-
-        }
-
-        #endregion
-
-        #region PCK_SCNT
-
-        public void setPCK_SCNT(ushort pck_scnt)
-        {
-            addWordAt(pck_scnt, 8);
-            updateCRC();
-        }
-
-        public ushort getPCK_SCNT()
-        {
-            ushort data = bytes2word(this.packet[8], this.packet[9]);
-            return data;
-        }
-
-        public string getPCK_SCNT_HexString()
-        {
-            ushort data = bytes2word(this.packet[8], this.packet[9]);
-            return word2hexstr(data);
-        }
-
-        #endregion
-
-
-        #endregion
-
-        #region PACKET TOOLS
-
-        protected void initPacket(int size)
-        {
-            this.packet = new byte[size];
-        }
-
-        protected void addByte(byte data)
-        {
-            this.packet[idx++] = data;
-        }
-
-        protected void addWord(ushort data)
-        {
-            byte hbyte = (byte)0x00;
-            byte lbyte = (byte)0x00;
-            word2bytes(data, ref hbyte, ref lbyte);
-            this.packet[idx++] = hbyte;
-            this.packet[idx++] = lbyte;
-        }
-
-        protected void addByteAt(byte data, int index)
-        {
-            this.packet[index] = data;
-        }
-
-        protected void addWordAt(ushort data, int index)
-        {
-            byte hbyte = (byte)0x00;
-            byte lbyte = (byte)0x00;
-            word2bytes(data, ref hbyte, ref lbyte);
-            this.packet[index] = hbyte;
-            this.packet[index + 1] = lbyte;
-        }
-
-        private ushort calcCRC()
-        {
-            ushort crc = (ushort)0xffff;
-            ushort index;
-            byte b;
-
-            for (index = 4; index < this.packet.Length - 3; index++)
-            {
-                crc ^= ((ushort)((this.packet[index] << 8) & 0x0000ffff));
-                for (b = 0; b < 8; b++)
+                ReadState state = Fields[i].Read(buf, ref at);
+                switch (state)
                 {
-                    if ((crc & (ushort)0x8000) == (ushort)0x8000)
-                        crc = (ushort)((ushort)((crc << 1) & 0x0000ffff) ^ (ushort)0x1021);
-                    else
-                        crc = (ushort)((crc << 1) & 0x0000ffff);
+                    case ReadState.Success:
+                        continue;
+                    case ReadState.UnexpectedEndOfStream:
+                        at = start;
+                        return state;
+                    case ReadState.Fail:
+                        at = start;
+                        return state;
                 }
             }
-
-            return crc;
+            return ReadState.Success;
         }
 
-        protected void updateCRC()
+        /// <summary>
+        ///     Serialises the whole packet into a buffer.
+        /// </summary>
+        /// <param name="buf">Buffer to write to.</param>
+        /// <param name="at">Start index. Not modified.</param>
+        public void Write(byte[] buf, int at)
         {
-            ushort crc = calcCRC();
-            addWordAt((ushort)crc, this.packet.Length - 3);
+            Write(buf, ref at);
         }
 
-        public string toHexString()
+        /// <summary>
+        ///     Serialises the whole packet into a buffer.
+        /// </summary>
+        /// <param name="buf">Buffer to write to.</param>
+        /// <param name="at">
+        ///     Start index. Incremented by the amount of bytes written.
+        /// </param>
+        public void Write(byte[] buf, ref int at)
         {
-            return BitConverter.ToString(this.packet);
+            int start = at;
+            try
+            {
+                for (int i = 0; i < Fields.Length; i++)
+                {
+                    Fields[i].Write(buf, ref at);
+                }
+            }
+            catch (Exception ex)
+            {
+                at = start;
+                throw ex;
+            }
         }
 
-        public void setPacket(byte[] p)
+        public int SerialisedLength()
         {
-            this.packet = p;
+            int ret = 0;
+            for (int i = 0; i < Fields.Length; i++)
+            {
+                ret += Fields[i].Length;
+            }
+            return ret;
         }
 
-        public byte[] getRawPacket()
+        public byte[] ToByteArray()
         {
-            return this.packet;
+            byte[] ret = new byte[SerialisedLength()];
+            Write(ret, 0);
+            return ret;
         }
 
-        #endregion
-
-        #region BYTE TOOLS
-
-        private ushort bytes2word(byte hb, byte lb)
+        /// <summary>
+        ///     Finds a possible start of packet in a buffer.
+        /// </summary>
+        /// <param name="arr">Buffer to search in.</param>
+        /// <param name="from">Index to search from.</param>
+        /// <returns>Index of packet start. -1 if search failed.</returns>
+        public int FindStart(byte[] arr, int from = 0)
         {
-            ushort data = (ushort)(hb << 8 | lb);
-            return data;
+            if (from < 0 || from >= arr.Length)
+            {
+                throw new IndexOutOfRangeException();
+            }
+            for (int i = from; i < arr.Length; i++)
+            {
+                switch (Fields[0].Read(arr, i))
+                {
+                    case ReadState.Success:
+                    case ReadState.UnexpectedEndOfStream:
+                        return i;
+                    case ReadState.Fail:
+                        continue;
+                }
+            }
+            return -1;
         }
-
-        private void word2bytes(ushort data, ref byte hb, ref byte lb)
-        {
-            hb = (byte)((data >> 8) & 0x000000FF);
-            lb = (byte)(data & (ushort)0x00FF);
-        }
-
-        private string byte2hexstr(byte data)
-        {
-            StringBuilder sb = new StringBuilder(4);
-            sb.Append("0x");
-            sb.AppendFormat("{0:x2}", data);
-            return sb.ToString();
-        }
-
-        private string word2hexstr(ushort data)
-        {
-            StringBuilder sb = new StringBuilder(6);
-            byte hb = (byte)((data >> 8) & 0x000000FF);
-            byte lb = (byte)(data & 0x00FF);
-            sb.Append("0x");
-            sb.AppendFormat("{0:X2}", hb);
-            sb.AppendFormat("{0:X2}", lb);
-            return sb.ToString();
-        }
-
-        #endregion
-
     }
 }

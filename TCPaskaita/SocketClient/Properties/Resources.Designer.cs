@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace MySocketClient.Properties {
+namespace PacketClient.Properties {
     using System;
     
     
