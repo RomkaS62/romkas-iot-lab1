@@ -83,7 +83,8 @@ namespace Packets
             };
             var dataField =
                 new VariableLengthField(
-                    (IntegerField)Fields[DATA_LENGTH_IDX]);
+                    (IntegerField)Fields[DATA_LENGTH_IDX],
+                    3 + 3 + 3 + 2 + (uint)Constants.END_MAGIC.Length);
             Fields[DATA_IDX] = dataField;
         }
 
@@ -108,6 +109,43 @@ namespace Packets
             ClientPacketSequenceNumber = cl.SequenceNumber;
             Data = data;
         }
+
+        public ServerPacket(ClientPacket cp)
+        {
+            InitFields();
+            ClientPacketID = cp.PacketID;
+            ClientPacketSequenceNumber = cp.SequenceNumber;
+            Data = new byte[cp.DataLength];
+            Array.Copy(cp.Data, Data, Data.Length);
+        }
+
+        public override ReadState Read(byte[] buf, ref int at)
+        {
+            ReadState state = base.Read(buf, ref at);
+
+            if (Fields[CRC_IDX].ULong != Bytes.CRC(CRCStream()))
+                return ReadState.Fail;
+
+            return state;
+        }
+
+        public override void Write(byte[] buf, ref int at)
+        {
+            Fields[CRC_IDX].ULong = Bytes.CRC(CRCStream());
+            base.Write(buf, ref at);
+        }
+
+        private IEnumerable<byte> CRCStream()
+        {
+            for (int i = 0; i < Fields.Length; i++)
+            {
+                for (int j = 0; j < Fields[i].Length; j++)
+                {
+                    yield return Fields[i].Value[j];
+                }
+            }
+        }
+
         public override string ToString()
         {
             return String.Format(

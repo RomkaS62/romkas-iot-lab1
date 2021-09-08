@@ -17,8 +17,10 @@ namespace Packets
         public override byte[] Value {
             set
             {
-                buf = value;
-                lengthField.ULong = (uint)value.Length;
+                byte[] newVal = new byte[value.Length];
+                value.CopyTo(newVal, 0);
+                buf = newVal;
+                lengthField.ULong = (uint)value.Length + bias;
             }
         }
 
@@ -61,6 +63,7 @@ namespace Packets
             {
                 buf[i + at] = Value[i];
             }
+            at += Length;
         }
 
         public override ReadState Read(byte[] buf, ref int at)
@@ -73,6 +76,7 @@ namespace Packets
             {
                 Value[i] = buf[at + i];
             }
+            at += Length;
             return ReadState.Success;
         }
     }

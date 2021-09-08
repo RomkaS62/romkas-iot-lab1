@@ -49,7 +49,12 @@ namespace Packets
         /// </summary>
         public virtual byte[] Value {
             get { return buf; }
-            set { buf = value; }
+            set
+            {
+                byte[] newval = new byte[value.Length];
+                value.CopyTo(newval, 0);
+                buf = newval;
+            }
         }
 
         /// <summary>

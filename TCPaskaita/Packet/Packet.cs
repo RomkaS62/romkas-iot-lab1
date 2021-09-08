@@ -27,7 +27,7 @@ namespace Packets
         /// <param name="buf">Buffer to read from.</param>
         /// <param name="at">Start index. Incremented by bytes read.</param>
         /// <returns>Representation of read state.</returns>
-        public ReadState Read(byte[] buf, ref int at)
+        public virtual ReadState Read(byte[] buf, ref int at)
         {
             int start = at;
             for (int i = 0; i < Fields.Length; i++)
@@ -65,20 +65,11 @@ namespace Packets
         /// <param name="at">
         ///     Start index. Incremented by the amount of bytes written.
         /// </param>
-        public void Write(byte[] buf, ref int at)
+        public virtual void Write(byte[] buf, ref int at)
         {
-            int start = at;
-            try
+            for (int i = 0; i < Fields.Length; i++)
             {
-                for (int i = 0; i < Fields.Length; i++)
-                {
-                    Fields[i].Write(buf, ref at);
-                }
-            }
-            catch (Exception ex)
-            {
-                at = start;
-                throw ex;
+                Fields[i].Write(buf, ref at);
             }
         }
 

@@ -51,7 +51,7 @@ namespace PacketClient
 
         private void Packet3Click(object sender, EventArgs e)
         {
-            DispatchPacket(3, new byte[] { 1, 2, 3 });
+            DispatchPacket(3, new byte[] { 0xAA, 0xAB, 0xAC });
         }
 
         private void DispatchPacket(uint id, byte[] data)

@@ -147,7 +147,7 @@ namespace MySocketServer
                         GUI.ClientWriteLn("Client packet:");
                         GUI.ClientWriteLn(buffer.ToHexString(0, bytesRead));
                         GUI.ClientWriteLn(clientPacket.ToString());
-                        reply = new ServerPacket(clientPacket, Constants.NO_BYTES);
+                        reply = new ServerPacket(clientPacket);
                         break;
                     case ReadState.UnexpectedEndOfStream:
                         GUI.ServerWriteLn("Could not receive entire packet in one go.");

@@ -30,15 +30,10 @@ namespace Packets
         private const int CRC_IDX = 5;
         private const int END_MAGIC_IDX = 6;
 
-        private ushort prevCRC = 0;
-        private int prevLength = 0;
-        private bool dirty = true;
-
         public ulong DataLength {
-            get { return Fields[LENGTH_IDX].ULong; }
+            get { return (ulong)Fields[DATA_IDX].Length; }
             set
             {
-                dirty = true;
                 Fields[DATA_IDX].Value = new byte[value];
             }
         }
@@ -46,7 +41,6 @@ namespace Packets
             get { return (uint)Fields[SEQUENCE_NUMBER_IDX].ULong; }
             set
             {
-                dirty = true;
                 Fields[SEQUENCE_NUMBER_IDX].ULong = value;
             }
         }
@@ -54,7 +48,6 @@ namespace Packets
             get { return (uint)Fields[PACKET_ID_IDX].ULong; }
             set
             {
-                dirty = true;
                 Fields[PACKET_ID_IDX].ULong = value;
             }
         }
@@ -62,7 +55,6 @@ namespace Packets
             get { return Fields[DATA_IDX].Value; }
             set
             {
-                dirty = true;
                 Fields[DATA_IDX].Value = value;
             }
         }
@@ -70,8 +62,7 @@ namespace Packets
         {
             get
             {
-                if (dirty)
-                    Update();
+                Fields[CRC_IDX].ULong = Bytes.CRC(CRCStream());
                 return (ushort)Fields[CRC_IDX].ULong;
             }
             set { Fields[CRC_IDX].ULong = value; }
@@ -88,7 +79,8 @@ namespace Packets
                 new IntegerField(2, 0),
                 new BinaryConstField(Constants.END_MAGIC)
             };
-            var dataField = new VariableLengthField((IntegerField)Fields[LENGTH_IDX]);
+            var dataField = new VariableLengthField((IntegerField)Fields[LENGTH_IDX],
+                    3 + 3 + 2 + (uint)Constants.END_MAGIC.Length);
             Fields[DATA_IDX] = dataField;
             SequenceNumber = NextSequenceNumber++;
         }
@@ -96,7 +88,7 @@ namespace Packets
         public ClientPacket(uint packetID)
         {
             InitFields();
-            PacketID = PacketID;
+            PacketID = packetID;
             Data = Constants.NO_BYTES;
         }
 
@@ -107,16 +99,20 @@ namespace Packets
             Data = data;
         }
 
-        private void Update()
+        public override void Write(byte[] buf, ref int at)
         {
-            prevLength = 0;
-            for (int i = 0; i < Fields.Length; i++)
-            {
-                prevLength += Fields[i].Length;
-            }
-            prevCRC = Bytes.CRC(CRCStream());
-            Fields[CRC_IDX].ULong = prevCRC;
-            dirty = false;
+            CRC = Bytes.CRC(CRCStream());
+            base.Write(buf, ref at);
+        }
+
+        public override ReadState Read(byte[] buf, ref int at)
+        {
+            ReadState state =  base.Read(buf, ref at);
+
+            if (Fields[CRC_IDX].ULong != Bytes.CRC(CRCStream()))
+                return ReadState.Fail;
+
+            return state;
         }
 
         public IEnumerable<byte> CRCStream()
@@ -130,21 +126,15 @@ namespace Packets
             }
         }
 
-        public int Length()
-        {
-            if (dirty)
-                Update();
-            return prevLength;
-        }
-
         public override string ToString()
         {
             return String.Format(
                     "Size            {0,5:D} ({0:X3})\r\n"
-                +   "Sqeuence number {1,5:D} ({1:X3})\r\n"
-                +   "ID              {2,5:D} ({2:X3})\r\n"
-                +   "CRC             {3:X4}\r\n"
-                , DataLength, SequenceNumber, PacketID, CRC);
+                +   "Data            {1}\r\n"
+                +   "Sqeuence number {2,5:D} ({2:X3})\r\n"
+                +   "ID              {3,5:D} ({3:X3})\r\n"
+                +   "CRC             {4:X4}\r\n"
+                , DataLength, Data.ToHexString(), SequenceNumber, PacketID, CRC);
         }
     }
 }
