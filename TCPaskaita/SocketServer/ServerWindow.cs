@@ -131,7 +131,7 @@ namespace MySocketServer
                 ServerPacket reply = null;
 
                 NetworkStream stream = client.GetStream();
-                ClientPacket clientPacket = new ClientPacket(0);
+                ClientPacket clientPacket = new ClientPacket(1);
                 bytesRead = stream.Read(buffer, 0, buffer.Length);
                 messageIndex = clientPacket.FindStart(buffer);
                 if (messageIndex < 0)
