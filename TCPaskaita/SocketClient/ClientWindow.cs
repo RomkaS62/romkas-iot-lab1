@@ -46,12 +46,12 @@ namespace PacketClient
 
         private void Packet2Click(object sender, EventArgs e)
         {
-            DispatchPacket(2, new byte[] { 0xAB });
+            DispatchPacket(3, new byte[] { 0xAB });
         }
 
         private void Packet3Click(object sender, EventArgs e)
         {
-            DispatchPacket(3, new byte[] { 0xAA, 0xAB, 0xAC });
+            DispatchPacket(5, new byte[] { 1, 2, 3});
         }
 
         private void DispatchPacket(uint id, byte[] data)

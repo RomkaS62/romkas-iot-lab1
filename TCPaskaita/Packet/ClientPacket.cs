@@ -48,7 +48,16 @@ namespace Packets
             get { return (uint)Fields[PACKET_ID_IDX].ULong; }
             set
             {
-                Fields[PACKET_ID_IDX].ULong = value;
+                switch (value)
+                {
+                    case 1:
+                    case 3:
+                    case 5:
+                        Fields[PACKET_ID_IDX].ULong = value;
+                        break;
+                    default:
+                        throw new ArgumentException("Invalid packet ID: " + value);
+                }
             }
         }
         public byte[] Data {
