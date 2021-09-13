@@ -150,16 +150,21 @@ namespace MySocketServer
                         reply = new ServerPacket(clientPacket);
                         break;
                     case ReadState.UnexpectedEndOfStream:
-                        GUI.ServerWriteLn("Could not receive entire packet in one go.");
+                        GUI.ClientWriteLn("Could not receive entire packet in one go.");
                         break;
                     case ReadState.Fail:
-                        GUI.ServerWriteLn("Malformed packet!");
+                        GUI.ClientWriteLn("Malformed packet!");
+                        GUI.ClientWriteLn(BitConverter.ToString(buffer, 0, clientPacket.SerialisedLength()));
+                        GUI.ClientWriteLn(clientPacket.ToString());
                         break;
                 }
                 if (reply != null)
                 {
                     reply.Write(buffer, 0);
                     stream.Write(buffer, 0, reply.SerialisedLength());
+                    GUI.ServerWriteLn("Packet sent:");
+                    GUI.ServerWriteLn(buffer.ToHexString(0, reply.SerialisedLength()));
+                    GUI.ServerWriteLn(reply.ToString());
                 }
                 client.Close();
                 stream.Close();

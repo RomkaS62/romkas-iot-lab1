@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Packets
 {
-    public abstract class Packet
+    public class Packet
     {
         protected Field[] Fields;
 
@@ -41,6 +41,10 @@ namespace Packets
                         at = start;
                         return state;
                     case ReadState.Fail:
+#if DEBUG
+                        Console.Error.WriteLine("Read failed. Malformed packet:");
+                        Console.Error.WriteLine(BitConverter.ToString(buf, 0, at));
+#endif
                         at = start;
                         return state;
                 }
@@ -67,6 +71,7 @@ namespace Packets
         /// </param>
         public virtual void Write(byte[] buf, ref int at)
         {
+            InitWrite();
             for (int i = 0; i < Fields.Length; i++)
             {
                 Fields[i].Write(buf, ref at);
@@ -114,6 +119,14 @@ namespace Packets
                 }
             }
             return -1;
+        }
+
+        /// <Summary>
+        ///     Override this if some fields depend on others non-trivially.
+        /// </Summary>
+        protected virtual void InitWrite()
+        {
+            return;
         }
     }
 }

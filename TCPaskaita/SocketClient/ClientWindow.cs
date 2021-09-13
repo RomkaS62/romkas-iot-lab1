@@ -73,21 +73,24 @@ namespace PacketClient
                     TcpClient client = new TcpClient(hostname, port);
                     NetworkStream stream = client.GetStream();
                     stream.Write(serialisedPacket, 0, serialisedPacket.Length);
-                    int read = stream.Read(receiveBuffer, 0, receiveBuffer.Length);
+                    int bytesRead = stream.Read(receiveBuffer, 0, receiveBuffer.Length);
                     ServerPacket sp = new ServerPacket();
                     switch (sp.Read(receiveBuffer, 0))
                     {
                         case ReadState.Success:
+                            WriteServerPacketTB("Server packet:");
                             byte[] sps = new byte[sp.SerialisedLength()];
                             sp.Write(sps, 0);
-                            WriteServerPacketTB("Server packet:");
-                            WriteServerPacketTB(PacketToString(sp, sps));
+                            WriteServerPacketTB(BitConverter.ToString(sps));
+                            WriteServerPacketTB(sp.ToString());
                             break;
                         case ReadState.UnexpectedEndOfStream:
                             WriteServerPacketTB("Could not read entire packet in one go.");
                             break;
                         case ReadState.Fail:
                             WriteServerPacketTB("Malformed packet");
+                            WriteServerPacketTB(BitConverter.ToString(receiveBuffer, 0, bytesRead));
+                            WriteServerPacketTB(sp.ToString());
                             break;
                     }
                 }

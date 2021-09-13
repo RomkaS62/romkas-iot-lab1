@@ -36,8 +36,10 @@
             this.textBoxIP = new System.Windows.Forms.TextBox();
             this.portTB = new System.Windows.Forms.TextBox();
             this.Listen = new System.Windows.Forms.Button();
+            this.panel1 = new System.Windows.Forms.Panel();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
+            this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // clientPacketTB
@@ -46,6 +48,7 @@
             this.clientPacketTB.Location = new System.Drawing.Point(6, 19);
             this.clientPacketTB.Multiline = true;
             this.clientPacketTB.Name = "clientPacketTB";
+            this.clientPacketTB.ReadOnly = true;
             this.clientPacketTB.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.clientPacketTB.Size = new System.Drawing.Size(561, 151);
             this.clientPacketTB.TabIndex = 1;
@@ -76,6 +79,7 @@
             this.serverPacketTB.Location = new System.Drawing.Point(7, 20);
             this.serverPacketTB.Multiline = true;
             this.serverPacketTB.Name = "serverPacketTB";
+            this.serverPacketTB.ReadOnly = true;
             this.serverPacketTB.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.serverPacketTB.Size = new System.Drawing.Size(560, 148);
             this.serverPacketTB.TabIndex = 0;
@@ -83,7 +87,7 @@
             // stopButton
             // 
             this.stopButton.Enabled = false;
-            this.stopButton.Location = new System.Drawing.Point(95, 12);
+            this.stopButton.Location = new System.Drawing.Point(78, 3);
             this.stopButton.Name = "stopButton";
             this.stopButton.Size = new System.Drawing.Size(75, 23);
             this.stopButton.TabIndex = 6;
@@ -93,22 +97,22 @@
             // 
             // textBoxIP
             // 
-            this.textBoxIP.Location = new System.Drawing.Point(176, 14);
+            this.textBoxIP.Location = new System.Drawing.Point(159, 5);
             this.textBoxIP.Name = "textBoxIP";
-            this.textBoxIP.Size = new System.Drawing.Size(140, 20);
+            this.textBoxIP.Size = new System.Drawing.Size(224, 20);
             this.textBoxIP.TabIndex = 7;
             this.textBoxIP.Text = "127.0.0.1";
             // 
             // portTB
             // 
-            this.portTB.Location = new System.Drawing.Point(322, 14);
+            this.portTB.Location = new System.Drawing.Point(389, 5);
             this.portTB.Name = "portTB";
-            this.portTB.Size = new System.Drawing.Size(100, 20);
+            this.portTB.Size = new System.Drawing.Size(168, 20);
             this.portTB.TabIndex = 8;
             // 
             // Listen
             // 
-            this.Listen.Location = new System.Drawing.Point(20, 12);
+            this.Listen.Location = new System.Drawing.Point(3, 3);
             this.Listen.Name = "Listen";
             this.Listen.Size = new System.Drawing.Size(69, 22);
             this.Listen.TabIndex = 9;
@@ -116,25 +120,34 @@
             this.Listen.UseVisualStyleBackColor = true;
             this.Listen.Click += new System.EventHandler(this.Listen_Click);
             // 
-            // Form1
+            // panel1
+            // 
+            this.panel1.Controls.Add(this.textBoxIP);
+            this.panel1.Controls.Add(this.portTB);
+            this.panel1.Controls.Add(this.Listen);
+            this.panel1.Controls.Add(this.stopButton);
+            this.panel1.Location = new System.Drawing.Point(20, 12);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(560, 30);
+            this.panel1.TabIndex = 10;
+            // 
+            // ServerWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(598, 420);
-            this.Controls.Add(this.Listen);
-            this.Controls.Add(this.portTB);
-            this.Controls.Add(this.textBoxIP);
-            this.Controls.Add(this.stopButton);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.groupBox2);
-            this.Name = "Form1";
+            this.Controls.Add(this.panel1);
+            this.Name = "ServerWindow";
             this.Text = "SOCKET SERVER";
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             this.groupBox3.ResumeLayout(false);
             this.groupBox3.PerformLayout();
+            this.panel1.ResumeLayout(false);
+            this.panel1.PerformLayout();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
@@ -148,6 +161,7 @@
         private System.Windows.Forms.TextBox textBoxIP;
         private System.Windows.Forms.TextBox portTB;
         private System.Windows.Forms.Button Listen;
+        private System.Windows.Forms.Panel panel1;
     }
 }
 

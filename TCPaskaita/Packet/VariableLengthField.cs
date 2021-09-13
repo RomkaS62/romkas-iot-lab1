@@ -68,15 +68,17 @@ namespace Packets
 
         public override ReadState Read(byte[] buf, ref int at)
         {
+            int dataLength = (int)(lengthField.ULong - bias);
             if (at + Length >= buf.Length)
             {
                 return ReadState.UnexpectedEndOfStream;
             }
-            for (int i = 0; i < Length; i++)
+            Value = new byte[dataLength];
+            for (int i = 0; i < (int)dataLength; i++)
             {
                 Value[i] = buf[at + i];
             }
-            at += Length;
+            at += dataLength;
             return ReadState.Success;
         }
     }

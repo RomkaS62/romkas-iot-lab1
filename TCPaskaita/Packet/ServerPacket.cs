@@ -33,8 +33,7 @@ namespace Packets
 
         public uint DataLength
         {
-            get { return (uint)Fields[DATA_LENGTH_IDX].ULong; }
-            set { Fields[DATA_LENGTH_IDX].ULong = value; }
+            get { return (uint)Fields[DATA_IDX].Length; }
         }
         public uint SequenceNumber
         {
@@ -59,7 +58,10 @@ namespace Packets
         public byte[] Data
         {
             get { return Fields[DATA_IDX].Value; }
-            set { Fields[DATA_IDX].Value = value; }
+            set
+            {
+                Fields[DATA_IDX].Value = value;
+            }
         }
 
         public ushort CRC
@@ -102,42 +104,53 @@ namespace Packets
             Data = data;
         }
 
-        public ServerPacket(ClientPacket cl, byte[] data)
-        {
-            InitFields();
-            ClientPacketID = cl.PacketID;
-            ClientPacketSequenceNumber = cl.SequenceNumber;
-            Data = data;
-        }
-
         public ServerPacket(ClientPacket cp)
         {
             InitFields();
             ClientPacketID = cp.PacketID;
             ClientPacketSequenceNumber = cp.SequenceNumber;
-            Data = new byte[cp.DataLength];
-            Array.Copy(cp.Data, Data, Data.Length);
+            Data = cp.Data;
         }
 
         public override ReadState Read(byte[] buf, ref int at)
         {
             ReadState state = base.Read(buf, ref at);
 
-            if (Fields[CRC_IDX].ULong != Bytes.CRC(CRCStream()))
+#if DEBUG
+            if (state != ReadState.Success)
+            {
+                Console.Error.WriteLine("Malformed server packet:");
+                Console.Error.WriteLine(BitConverter.ToString(buf, at));
+            }
+#endif
+
+            ushort expectedCRC = Bytes.CRC(CRCStream());
+            if (Fields[CRC_IDX].ULong != expectedCRC)
+            {
+#if DEBUG
+                Console.Error.WriteLine("Malformed server packet. CRC does not match:");
+                Console.Error.WriteLine(String.Format("Expected CRC: {0:X}", expectedCRC));
+                Console.Error.WriteLine(String.Format("Received CRC: {0:X}", Fields[CRC_IDX].ULong));
+#endif
                 return ReadState.Fail;
+            }
 
             return state;
         }
 
         public override void Write(byte[] buf, ref int at)
         {
-            Fields[CRC_IDX].ULong = Bytes.CRC(CRCStream());
             base.Write(buf, ref at);
+        }
+
+        protected override void InitWrite()
+        {
+            CRC = Bytes.CRC(CRCStream());
         }
 
         private IEnumerable<byte> CRCStream()
         {
-            for (int i = 0; i < Fields.Length; i++)
+            for (int i = 1; i < Fields.Length - 2; i++)
             {
                 for (int j = 0; j < Fields[i].Length; j++)
                 {
@@ -149,13 +162,13 @@ namespace Packets
         public override string ToString()
         {
             return String.Format(
-                        "Data length            {0,4:D} {0,03:X}\r\n"
-                    +   "Sequence number        {1,4:D} {1,03:X}\r\n"
-                    +   "Packet ID              {2,4:D} {2,03:X}\r\n"
-                    +   "Client ID              {3,4:D} {3,03:X}\r\n"
-                    +   "Client sequence number {4,4:D} {4,03:X}\r\n"
-                    +   "CRC                    {5,4:D} {5,02:X}\r\n"
-                    +   "Data                   {6}\r\n"
+                        "Data                   {6}\r\n"
+                    +   "Size                   {0,10:D} ({0:X6})\r\n"
+                    +   "Sequence number        {1,10:D} ({1:X6})\r\n"
+                    +   "Packet ID              {2,10:D} ({2:X6})\r\n"
+                    +   "Client ID              {3,10:D} ({3:X6})\r\n"
+                    +   "Client sequence number {4,10:D} ({4:X6})\r\n"
+                    +   "CRC                    {5,10:D} ({5:X4})\r\n"
                     ,
                         DataLength, SequenceNumber, PacketID,
                         ClientPacketID, ClientPacketSequenceNumber,

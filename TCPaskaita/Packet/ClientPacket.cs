@@ -53,10 +53,7 @@ namespace Packets
         }
         public byte[] Data {
             get { return Fields[DATA_IDX].Value; }
-            set
-            {
-                Fields[DATA_IDX].Value = value;
-            }
+            set { Fields[DATA_IDX].Value = value; }
         }
         public ushort CRC
         {
@@ -101,7 +98,6 @@ namespace Packets
 
         public override void Write(byte[] buf, ref int at)
         {
-            CRC = Bytes.CRC(CRCStream());
             base.Write(buf, ref at);
         }
 
@@ -109,8 +105,25 @@ namespace Packets
         {
             ReadState state =  base.Read(buf, ref at);
 
-            if (Fields[CRC_IDX].ULong != Bytes.CRC(CRCStream()))
+#if DEBUG
+            if (state != ReadState.Success)
+            {
+                Console.Error.WriteLine("Malformed packet:");
+                Console.Error.WriteLine(BitConverter.ToString(buf, at));
+            }
+#endif
+
+            ushort expectedCRC = Bytes.CRC(CRCStream());
+            if (Fields[CRC_IDX].ULong != expectedCRC)
+            {
+#if DEBUG
+                Console.Error.WriteLine("Read failed. CRC does not match. Malformed client packet:");
+                Console.Error.WriteLine(String.Format("Expected CRC: {0:X}", expectedCRC));
+                Console.Error.WriteLine(String.Format("Received CRC: {0:X}", Fields[CRC_IDX].ULong));
+                Console.Error.WriteLine(BitConverter.ToString(buf, 0, at));
+#endif
                 return ReadState.Fail;
+            }
 
             return state;
         }
@@ -129,12 +142,17 @@ namespace Packets
         public override string ToString()
         {
             return String.Format(
-                    "Size            {0,5:D} ({0:X3})\r\n"
-                +   "Data            {1}\r\n"
-                +   "Sqeuence number {2,5:D} ({2:X3})\r\n"
-                +   "ID              {3,5:D} ({3:X3})\r\n"
-                +   "CRC             {4:X4}\r\n"
+                    "Data            {1}\r\n"
+                +   "Size            {0,12:D} ({0,6:X6})\r\n"
+                +   "Sqeuence number {2,12:D} ({2,6:X6})\r\n"
+                +   "ID              {3,12:D} ({3,6:X6})\r\n"
+                +   "CRC             {4,12:X}\r\n"
                 , DataLength, Data.ToHexString(), SequenceNumber, PacketID, CRC);
+        }
+
+        protected override void InitWrite()
+        {
+            CRC = Bytes.CRC(CRCStream());
         }
     }
 }
