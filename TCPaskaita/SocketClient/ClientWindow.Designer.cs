@@ -40,6 +40,7 @@
             this.groupBox4 = new System.Windows.Forms.GroupBox();
             this.PortTB = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
+            this.ClientP4Btn = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -69,6 +70,7 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.ClientP4Btn);
             this.groupBox1.Controls.Add(this.button3);
             this.groupBox1.Controls.Add(this.button2);
             this.groupBox1.Controls.Add(this.button1);
@@ -81,9 +83,9 @@
             // 
             // button3
             // 
-            this.button3.Location = new System.Drawing.Point(8, 77);
+            this.button3.Location = new System.Drawing.Point(9, 77);
             this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(81, 23);
+            this.button3.Size = new System.Drawing.Size(80, 23);
             this.button3.TabIndex = 2;
             this.button3.Text = "CLIENT_P3";
             this.button3.UseVisualStyleBackColor = true;
@@ -167,6 +169,16 @@
             this.label1.TabIndex = 13;
             this.label1.Text = "Server TCP port";
             // 
+            // ClientP4Btn
+            // 
+            this.ClientP4Btn.Location = new System.Drawing.Point(7, 107);
+            this.ClientP4Btn.Name = "ClientP4Btn";
+            this.ClientP4Btn.Size = new System.Drawing.Size(82, 23);
+            this.ClientP4Btn.TabIndex = 3;
+            this.ClientP4Btn.Text = "CLIENT_P4";
+            this.ClientP4Btn.UseVisualStyleBackColor = true;
+            this.ClientP4Btn.Click += new System.EventHandler(this.ClientP4Btn_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -203,6 +215,7 @@
         private System.Windows.Forms.GroupBox groupBox4;
         private System.Windows.Forms.TextBox PortTB;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Button ClientP4Btn;
     }
 }
 

@@ -54,6 +54,11 @@ namespace PacketClient
             DispatchPacket(5, new byte[] { 1, 2, 3});
         }
 
+        private void ClientP4Btn_Click(object sender, EventArgs e)
+        {
+            DispatchPacket(5, new byte[] { 0x56, 0x3b, 0x44, 0x63, 0x3e });
+        }
+
         private void DispatchPacket(uint id, byte[] data)
         {
             ClientPacket cp = new ClientPacket(id, data);
