@@ -155,7 +155,7 @@ namespace Packets
                 +   "Size            {0,12:D} ({0,6:X6})\r\n"
                 +   "Sqeuence number {2,12:D} ({2,6:X6})\r\n"
                 +   "ID              {3,12:D} ({3,6:X6})\r\n"
-                +   "CRC             {4,12:X}\r\n"
+                +   "CRC             {4,12:D} ({4,12:X})\r\n"
                 , DataLength, Data.ToHexString(), SequenceNumber, PacketID, CRC);
         }
 

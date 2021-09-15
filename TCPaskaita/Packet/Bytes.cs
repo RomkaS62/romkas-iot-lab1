@@ -141,26 +141,21 @@ namespace Packets
             ushort crc = (ushort)0xffff;
 
             if (from >= bytes.Length || to >= bytes.Length)
-            {
                 throw new ArgumentOutOfRangeException();
-            }
 
             if (from > to)
-            {
                 Swap(ref from, ref to);
-            }
 
             for (int index = from; index < to; index++)
-            {
                 CRCByte(ref crc, bytes[index]);
-            }
+
             return crc;
         }
 
         public static ushort CRCByte(ref ushort crc, byte b)
         {
             crc ^= ((ushort)((b << 8) & 0xFFFF));
-            for (b = 0; b < 8; b++)
+            for (int i = 0; i < 8; i++)
             {
                 if ((crc & (ushort)0x8000) == (ushort)0x8000)
                     crc = (ushort)((ushort)((crc << 1) & 0xFFFF) ^ (ushort)0x1021);
